@@ -34,7 +34,7 @@ ISO_SRS=$(xe sr-list type=iso --minimal)
 
 if [ -z "$ISO_SRS" ]; then
   echo ">>> No ISO SR found. Creating 'ISO Library'..."
-  xe sr-create name-label="ISO Library" type=iso device-config:location="$ISO_DIR" device-config:legacy_mode=true content-type=iso
+  xe sr-create "name-label=ISO Library" type=iso device-config:location="$ISO_DIR" device-config:legacy_mode=true content-type=iso
   ISO_SR_UUID=$(xe sr-list name-label="ISO Library" --minimal)
 else
   echo ">>> Existing ISO SR(s) detected:"
@@ -42,7 +42,7 @@ else
   select SR in $ISO_SR_LABELS "Create a new ISO SR named 'ISO Library'"; do
     if [ "$SR" = "Create a new ISO SR named 'ISO Library'" ]; then
       echo ">>> Creating new ISO SR 'ISO Library'..."
-      xe sr-create name-label="ISO Library" type=iso device-config:location="$ISO_DIR" device-config:legacy_mode=true content-type=iso
+      xe sr-create "name-label=ISO Library" type=iso device-config:location="$ISO_DIR" device-config:legacy_mode=true content-type=iso
       ISO_SR_UUID=$(xe sr-list name-label="ISO Library" --minimal)
     else
       ISO_SR_UUID=$(xe sr-list name-label="$SR" --minimal)
