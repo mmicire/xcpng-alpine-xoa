@@ -1,9 +1,3 @@
-
----
-
-## ✅ Updated `postinstall.sh` (no changes needed — but here it is for completeness)
-
-```sh
 #!/bin/sh
 
 set -e

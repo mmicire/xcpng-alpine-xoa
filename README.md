@@ -25,17 +25,13 @@ This will:
 
 ---
 
-## ⚙️ Automate Alpine Install
+## ⚙️ Alpine Install
 
 Inside the VM console (`xl console <domid>`), run:
 
 ```bash
-wget https://raw.githubusercontent.com/mmicire/xcpng-alpine-xoa/main/answers.conf
-setup-alpine -f answers.conf
+setup-alpine
 ```
-
-🧠 This uses a preseed-like config to install Alpine non-interactively.
-
 ---
 
 ## 📀 Remove ISO and Boot from Disk
@@ -46,7 +42,7 @@ Once Alpine is installed, remove the ISO and switch to disk boot:
 xe vm-list is-control-domain=false params=uuid,name-label
 xe vm-cd-eject uuid=<VM-UUID> force=true
 xe vm-param-set uuid=<VM-UUID> HVM-boot-params:order=c
-xe vm-reboot uuid=<VM-UUID>
+xe vm-start uuid=<VM-UUID>
 ```
 
 ---
