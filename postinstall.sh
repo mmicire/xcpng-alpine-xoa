@@ -2,35 +2,41 @@
 
 set -e
 
-echo ">>> Updating system and installing Docker"
-apk update && apk upgrade
-apk add docker curl
+echo ">>> Updating APK repositories..."
 
-echo ">>> Enabling and starting Docker service"
-rc-update add docker default
+# Uncomment main and community repos if commented out
+sed -i 's|^#\(https://dl-cdn.alpinelinux.org/alpine/v[0-9]\+\.[0-9]\+/main\)|\1|' /etc/apk/repositories
+sed -i 's|^#\(https://dl-cdn.alpinelinux.org/alpine/v[0-9]\+\.[0-9]\+/community\)|\1|' /etc/apk/repositories
+
+apk update
+apk upgrade --no-cache
+
+echo ">>> Installing Docker and dependencies..."
+apk add --no-cache docker docker-cli curl bash
+
+echo ">>> Enabling and starting Docker..."
+rc-update add docker boot
 service docker start
 
-echo ">>> Creating Xen Orchestra data directory"
-mkdir -p /opt/xoa-data
+echo ">>> Pulling Xen Orchestra Docker image..."
+docker pull ronivay/xen-orchestra
 
-echo ">>> Pulling and running ronivay/xen-orchestra Docker container"
+echo ">>> Starting Xen Orchestra container..."
 docker run -d \
-  --name xen-orchestra \
-  --restart unless-stopped \
+  --name xoa \
   -p 80:80 \
-  -v /opt/xoa-data:/data \
+  -v /var/lib/xoa:/data \
+  --restart unless-stopped \
   ronivay/xen-orchestra
 
-echo ">>> Installing Watchtower to auto-update Xen Orchestra"
+echo ">>> Installing Watchtower for automatic updates..."
+docker pull containrrr/watchtower
+
 docker run -d \
   --name watchtower \
   --restart unless-stopped \
   -v /var/run/docker.sock:/var/run/docker.sock \
   containrrr/watchtower \
-  xen-orchestra \
-  --cleanup
+  --cleanup --interval 3600
 
-echo "✅ Xen Orchestra is running on port 80"
-ip addr show | grep 'inet ' | grep -v 127 | awk '{print $2}' | cut -d/ -f1
-
-echo "💡 Open your browser to http://<this-vm-ip> to access XO"
+echo "✅ Postinstall complete. Xen Orchestra is running on port 80."
