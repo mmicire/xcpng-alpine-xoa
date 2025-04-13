@@ -21,7 +21,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/mmicire/xcpng-alpine-xoa/mai
 This will:
 - Download the latest Alpine ISO
 - Create the VM and ISO Storage Repository (if needed)
-- Boot Alpine with network and disk preconfigured
+- Boot Alpine with the VM's network and disk preconfigured
 
 ---
 
@@ -32,6 +32,16 @@ Inside the VM console (`xl console <domid>`), run:
 ```bash
 setup-alpine
 ```
+
+Go through the installation ensuring that you install to xvda as the sys device.  
+
+When the installation completes, run: 
+
+```bash
+halt
+```
+After a few seconds you should be back at a prompt for Dom0.
+
 ---
 
 ## 📀 Remove ISO and Boot from Disk
