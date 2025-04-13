@@ -54,4 +54,5 @@ docker run -d \
   containrrr/watchtower \
   --cleanup --interval 3600
 
-echo "✅ Postinstall complete. Xen Orchestra is running on port 80."
+XOA_IP=$(ip -4 addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1)
+echo "✅ Postinstall complete. Xen Orchestra is running at: http://$XOA_IP"
