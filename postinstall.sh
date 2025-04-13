@@ -55,19 +55,9 @@ docker run -d \
   --cleanup --interval 3600
 
 echo ">>> Installing Xen guest utilities for proper VM metrics/shutdown..."
-apk add --no-cache xen-tools qemu-guest-agent
-
-echo ">>> Enabling xenstored..."
-rc-update add xenstored boot
-rc-service xenstored start
-
-echo ">>> Ensuring Xen guest kernel modules are loaded..."
-modprobe xen_blkfront || true
-modprobe xen_netfront || true
-
-echo ">>> To persist modules, add to /etc/modules:"
-echo "xen_blkfront" >> /etc/modules
-echo "xen_netfront" >> /etc/modules
+apk add --no-cache xe-guest-utilities
+rc-update add xe-guest-utilities default
+/etc/init.d/xe-guest-utilities start
 
 XOA_IP=$(ip -4 addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1)
 echo "✅ Postinstall complete. Xen Orchestra is running at: http://$XOA_IP"
