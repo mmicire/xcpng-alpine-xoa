@@ -30,7 +30,7 @@ fi
 # -------- FETCH LATEST ISO NAME --------
 echo ">>> Fetching latest Alpine ISO filename..."
 ISO_FILENAME=$(curl -s "$ALPINE_MIRROR/" \
-  | grep -oE 'alpine-standard-[0-9.]+-x86_64\.iso"' \
+  | grep -oE 'alpine-virt-[0-9.]+-x86_64\.iso"' \
   | sed 's/"$//' \
   | sort -V \
   | tail -n 1)
