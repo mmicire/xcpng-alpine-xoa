@@ -6,6 +6,7 @@ ALPINE_MIRROR="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_
 ISO_NAME_PREFIX="alpine-virt"
 VM_BASE_NAME="Alpine-Docker-XOA"
 VM_NAME="${VM_BASE_NAME}-$(head /dev/urandom | tr -dc a-z0-9 | head -c 6)"
+ISO_DIR="/var/tmp/xcpng-isos"
 
 echo ">>> Fetching latest Alpine virt ISO filename..."
 ISO_FILENAME=$(curl -s "$ALPINE_MIRROR/" \
@@ -16,7 +17,6 @@ ISO_FILENAME=$(curl -s "$ALPINE_MIRROR/" \
   | tail -n 1)
 
 ISO_URL="${ALPINE_MIRROR}/${ISO_FILENAME}"
-ISO_DIR="/var/tmp/xcpng-isos"
 ISO_PATH="${ISO_DIR}/${ISO_FILENAME}"
 
 echo ">>> Latest ISO found: ${ISO_FILENAME}"
@@ -38,18 +38,21 @@ if [ -z "$ISO_SRS" ]; then
   ISO_SR_UUID=$(xe sr-list name-label="ISO Library" --minimal)
 else
   echo ">>> Existing ISO SR(s) detected:"
-  echo "$ISO_SRS" | tr ',' '\n'
-  echo "Select ISO SR to use:"
-  select SR in $(xe sr-list type=iso params=name-label --minimal | tr ',' '\n'); do
-    ISO_SR_UUID=$(xe sr-list name-label="$SR" --minimal)
+  ISO_SR_LABELS=$(xe sr-list type=iso params=name-label --minimal | tr ',' '\n')
+  select SR in $ISO_SR_LABELS "Create a new ISO SR named 'ISO Library'"; do
+    if [ "$SR" = "Create a new ISO SR named 'ISO Library'" ]; then
+      echo ">>> Creating new ISO SR 'ISO Library'..."
+      xe sr-create name-label="ISO Library" type=iso device-config:location="$ISO_DIR" device-config:legacy_mode=true content-type=iso
+      ISO_SR_UUID=$(xe sr-list name-label="ISO Library" --minimal)
+    else
+      ISO_SR_UUID=$(xe sr-list name-label="$SR" --minimal)
+    fi
     break
   done
 fi
 
 echo ">>> Rescanning ISO SR..."
 xe-mount-iso-sr --uuid "$ISO_SR_UUID"
-
-echo ">>> Importing ISO to SR..."
 xe sr-scan uuid="$ISO_SR_UUID"
 
 echo ">>> Creating VM: $VM_NAME"
@@ -76,4 +79,4 @@ xe vm-start uuid=$VM_UUID
 
 DOMID=$(xl list | awk -v name="$VM_NAME" '$1 == name {print $2}')
 echo "✅ VM created and started: $VM_NAME"
-echo "💻 To access: xl console $DOMID"
+echo "💻 To access console: xl console $DOMID"
