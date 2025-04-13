@@ -3,7 +3,8 @@
 set -e
 
 # -------- CONFIGURATION --------
-VM_NAME="Alpine-Docker"
+SUFFIX=$(LC_CTYPE=C tr -dc 'a-z0-9' </dev/urandom | head -c6)
+VM_NAME="Alpine-Docker-XOA-$SUFFIX"
 DISK_SIZE_GB=8
 MEMORY_MB=1024
 VCPUS=1
@@ -123,8 +124,18 @@ xe sr-scan uuid="$ISO_SR_UUID"
 TEMPLATE_UUID=$(xe template-list name-label="Other install media" --minimal)
 SR_UUID=$(xe sr-list name-label="Local storage" --minimal)
 
-NETWORK_UUID=$(xe network-list bridge=xenbr0 --minimal)
-[ -z "$NETWORK_UUID" ] && NETWORK_UUID=$(xe network-list --minimal | cut -d, -f1)
+# -------- GET MANAGEMENT NETWORK --------
+echo ">>> Detecting dom0 management network..."
+
+MGMT_PIF_UUID=$(xe pif-list management=true --minimal)
+MGMT_NET_UUID=$(xe pif-param-get uuid=$MGMT_PIF_UUID param-name=network-uuid)
+
+if [ -n "$MGMT_NET_UUID" ]; then
+  echo "✅ dom0 management network UUID: $MGMT_NET_UUID"
+else
+  echo "❌ Could not detect dom0 management network. Exiting."
+  exit 1
+fi
 
 # -------- CREATE VM --------
 echo ">>> Creating VM: $VM_NAME"
@@ -149,8 +160,8 @@ else
 fi
 
 # -------- NETWORK & ISO --------
-echo ">>> Adding network interface..."
-xe vif-create vm-uuid=$VM_UUID network-uuid=$NETWORK_UUID device=0
+echo ">>> Adding network interface on management network..."
+xe vif-create vm-uuid=$VM_UUID network-uuid=$MGMT_NET_UUID device=0
 
 echo ">>> Attaching ISO..."
 xe vm-cd-add vm=$VM_UUID cd-name="$ISO_FILENAME" device=3
