@@ -4,9 +4,9 @@ set -e
 
 echo ">>> Updating APK repositories..."
 
-# Uncomment main and community repos if commented out
-sed -i 's|^#\(https://dl-cdn.alpinelinux.org/alpine/v[0-9]\+\.[0-9]\+/main\)|\1|' /etc/apk/repositories
-sed -i 's|^#\(https://dl-cdn.alpinelinux.org/alpine/v[0-9]\+\.[0-9]\+/community\)|\1|' /etc/apk/repositories
+# Uncomment 'main' and 'community' repositories (http or https, Alpine-compatible)
+sed -i '/^#http[s]*:\/\/dl-cdn\.alpinelinux\.org\/alpine\/.*\/main/s/^#//' /etc/apk/repositories
+sed -i '/^#http[s]*:\/\/dl-cdn\.alpinelinux\.org\/alpine\/.*\/community/s/^#//' /etc/apk/repositories
 
 apk update
 apk upgrade --no-cache
