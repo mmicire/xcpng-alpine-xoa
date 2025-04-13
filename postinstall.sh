@@ -18,6 +18,21 @@ echo ">>> Enabling and starting Docker..."
 rc-update add docker boot
 service docker start
 
+echo ">>> Waiting for Docker daemon to start..."
+for i in $(seq 1 10); do
+  if docker info >/dev/null 2>&1; then
+    echo "✅ Docker is ready."
+    break
+  fi
+  echo "⏳ Waiting ($i)..."
+  sleep 1
+done
+
+if ! docker info >/dev/null 2>&1; then
+  echo "❌ Docker daemon did not start in time."
+  exit 1
+fi
+
 echo ">>> Pulling Xen Orchestra Docker image..."
 docker pull ronivay/xen-orchestra
 
