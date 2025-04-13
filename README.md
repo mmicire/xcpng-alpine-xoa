@@ -1,104 +1,86 @@
-# XCP-ng Alpine VM Bootstrap
+# 🚀 Quickstart: XCP-ng Alpine VM + Xen Orchestra
 
-This repository automates the creation of a minimal Alpine Linux VM on an XCP-ng host, including:
+Welcome to the **Alpine Docker XOA** bootstrap for XCP-ng.
 
-- Downloading and verifying the latest Alpine ISO
-- Setting up an ISO Storage Repository (SR) if none exists
-- Creating and configuring a VM (disk, network, ISO attachment)
-- Booting the VM and displaying a direct console command
+This guide helps you:
 
-An optional `postinstall.sh` script is provided to run **inside** the Alpine VM after installation, which installs:
-
-- Docker
-- [ronivay/xen-orchestra](https://hub.docker.com/r/ronivay/xen-orchestra)
-- Watchtower for automatic container updates
+✅ Create a minimal Alpine Linux VM  
+✅ Install [ronivay/xen-orchestra](https://hub.docker.com/r/ronivay/xen-orchestra) via Docker  
+✅ Automate cleanup and reuse
 
 ---
 
-## 🚀 One-Liner Install (on XCP-ng host)
+## ✨ Create the VM
+
+Run this on your **XCP-ng host**:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/mmicire/xcpng-alpine-xoa/main/create-latest-alpine-vm.sh)
 ```
 
+This will:
+- Download the latest Alpine ISO
+- Create the VM and ISO Storage Repository (if needed)
+- Boot Alpine with network and disk preconfigured
+
 ---
 
-## 📦 After Installing Alpine
+## ⚙️ Automate Alpine Install
 
-Log into the VM (via `xl console` or SSH) and run:
+Inside the VM console (`xl console <domid>`), run:
+
+```bash
+wget https://raw.githubusercontent.com/mmicire/xcpng-alpine-xoa/main/answers.conf
+setup-alpine -f answers.conf
+```
+
+🧠 This uses a preseed-like config to install Alpine non-interactively.
+
+---
+
+## 📀 Remove ISO and Boot from Disk
+
+Once Alpine is installed, remove the ISO and switch to disk boot:
+
+```bash
+xe vm-list is-control-domain=false params=uuid,name-label
+xe vm-cd-eject uuid=<VM-UUID> force=true
+xe vm-param-set uuid=<VM-UUID> HVM-boot-params:order=c
+xe vm-reboot uuid=<VM-UUID>
+```
+
+---
+
+## 🧰 Install Xen Orchestra in Alpine
+
+Inside your Alpine VM:
 
 ```bash
 wget -O- https://raw.githubusercontent.com/mmicire/xcpng-alpine-xoa/main/postinstall.sh | sh
 ```
 
-This installs Docker, pulls Xen Orchestra, and runs Watchtower to keep it updated.
+This installs:
+- Docker
+- ronivay/xen-orchestra
+- Watchtower for automatic updates
 
 ---
 
-## 🛠 Files
+## 🧹 Clean Up VMs and ISOs
 
-| File                     | Description                                              |
-|--------------------------|----------------------------------------------------------|
-| `create-latest-alpine-vm.sh` | Main script to create the Alpine VM on XCP-ng            |
-| `postinstall.sh`              | Run inside Alpine after OS install to deploy Xen Orchestra |
-| `cleanup-alpine-xoa.sh`       | Deletes VMs, disks, and optionally ISOs for a clean environment |
+To delete test VMs and unused ISOs:
 
----
+```bash
+./cleanup-alpine-xoa.sh --clean-isos --log cleanup.log
+```
 
-## 🧹 VM Cleanup Script
-
-### `cleanup-alpine-xoa.sh`
-
-This script safely and flexibly removes VMs matching a given name prefix (default: `Alpine-Docker-XOA-`) and optionally deletes orphaned ISO files.
-
-### 🔧 Features
-
-- ✅ Deletes VMs created by `create-latest-alpine-vm.sh`
-- ✅ Cleans up associated VIFs, VBDs, and VDIs
-- ✅ Supports dry-run mode (shows what would be deleted)
-- ✅ Logs all actions to a file
-- ✅ Customizable VM name prefix
-- ✅ Can remove unused ISO images from ISO SRs
-
----
-
-### 🧪 Example Usage
-
-#### 🔍 Show what would be deleted (no action taken):
+Or simulate the cleanup first:
 
 ```bash
 ./cleanup-alpine-xoa.sh --dry-run
 ```
 
-#### 🧹 Perform full cleanup and log to a file:
-
-```bash
-./cleanup-alpine-xoa.sh --log cleanup.log
-```
-
-#### 🧹 Cleanup VMs with a custom prefix (e.g., Alpine-XOA-Test):
-
-```bash
-./cleanup-alpine-xoa.sh --prefix Alpine-XOA-Test
-```
-
-#### 🧼 Remove unused ISOs from ISO SRs as well:
-
-```bash
-./cleanup-alpine-xoa.sh --clean-isos
-```
-
-#### 📦 Combine all options:
-
-```bash
-./cleanup-alpine-xoa.sh --prefix Alpine-XOA-Test --clean-isos --log cleanup.log
-```
-
----
-
-### 🆘 Script Help
-
-You can always view the built-in help menu with:
+More options:
 
 ```bash
 ./cleanup-alpine-xoa.sh --help
@@ -106,5 +88,18 @@ You can always view the built-in help menu with:
 
 ---
 
-MIT License. Maintained by [mmicire](https://github.com/mmicire).
+## 📂 Files in This Repo
 
+| File                        | Purpose                                                |
+|-----------------------------|--------------------------------------------------------|
+| `create-latest-alpine-vm.sh` | Create Alpine VM in XCP-ng                            |
+| `answers.conf`               | Alpine preseed configuration                          |
+| `postinstall.sh`             | Installs Docker + Xen Orchestra                       |
+| `cleanup-alpine-xoa.sh`      | VM/ISO cleanup utility                                |
+
+---
+
+## 🗪 License
+
+MIT License.  
+Maintained by [@mmicire](https://github.com/mmicire)
