@@ -75,8 +75,11 @@ This installs:
 - ronivay/xen-orchestra
 - Watchtower for automatic updates
 - xe-guest-utilities and added to runlevel default
+- automatic daily updates and email on updates or error
 
-You should then see a message
+You should then see some messages:
+
+⚠️  Manual configuration required <- do these things if you want email alerts for updates
 
 ✅ Postinstall complete. Xen Orchestra is running at: http://xxx.xxx.xxx.xxx
 
