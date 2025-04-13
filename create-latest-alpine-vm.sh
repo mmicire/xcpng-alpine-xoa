@@ -6,7 +6,7 @@ ALPINE_MIRROR="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_
 ISO_NAME_PREFIX="alpine-virt"
 VM_BASE_NAME="Alpine-Docker-XOA"
 VM_NAME="${VM_BASE_NAME}-$(head /dev/urandom | tr -dc a-z0-9 | head -c 6)"
-ISO_DIR="/var/tmp/xcpng-isos"
+ISO_DIR="/var/opt/xen/iso_import"
 
 echo ">>> Fetching latest Alpine virt ISO filename..."
 ISO_FILENAME=$(curl -s "$ALPINE_MIRROR/" \
