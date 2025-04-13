@@ -97,10 +97,18 @@ else
     i=$((i+1))
   done
 
-  echo "  [$i] Create a new ISO SR named 'ISO Library'"
+  # Check if "ISO Library" already exists
+  if ! printf '%s\n' "${ISO_SR_NAMES[@]}" | grep -Fxq "ISO Library"; then
+    echo "  [$i] Create a new ISO SR named 'ISO Library'"
+    ALLOW_CREATE_ISO_LIBRARY=true
+  else
+    ALLOW_CREATE_ISO_LIBRARY=false
+  fi
 
-  read -p ">>> Choose ISO SR to use [1-$i]: " CHOICE
-  if [ "$CHOICE" == "$i" ]; then
+  read -p ">>> Choose ISO SR to use [1-$((i - ($ALLOW_CREATE_ISO_LIBRARY == true ? 0 : 1)))]: " CHOICE
+
+  if [ "$ALLOW_CREATE_ISO_LIBRARY" = true ] && [ "$CHOICE" == "$i" ]; then
+
     echo ">>> Creating ISO SR 'ISO Library'..."
     xe sr-create name-label="ISO Library" type=iso device-config:location="$ISO_DIR" device-config:legacy_mode=true content-type=iso
 
